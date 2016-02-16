@@ -1,0 +1,41 @@
+\documentclass[a4paper]{article}
+
+\usepackage{graphicx}
+\usepackage[outdir=./converted/]{epstopdf}
+\begin{document}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=.5\linewidth]{./pic.pdf}% the filename cannot contain a period
+  \caption{Sample}
+  \label{fig:pdf}
+\end{figure}
+
+\begin{figure}[h!]
+  \begin{tabular}{cc}
+    % 1
+    \begin{minipage}{0.5\hsize}
+      \centering
+      \includegraphics[width=5cm]{./pic.pdf}
+    \end{minipage} &
+    % 2
+    \begin{minipage}{0.5\hsize}
+      \centering
+      \includegraphics[width=5cm]{./pic.pdf}
+    \end{minipage} \\
+    % 3
+    \begin{minipage}{0.5\hsize}
+      \centering
+      \includegraphics[width=5cm]{./pic.pdf}
+    \end{minipage} &
+    % 4
+    \begin{minipage}{0.5\hsize}
+      \centering
+      \includegraphics[width=5cm]{./pic.pdf}
+    \end{minipage} \\
+  \end{tabular}
+  \caption{Table of pictures}
+  \label{fig:table}
+\end{figure}
+
+\end{document}
