@@ -1,0 +1,2 @@
+# texsnippets
+Snippets for TeX
