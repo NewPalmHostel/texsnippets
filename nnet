@@ -1,0 +1,116 @@
+\documentclass{article}
+
+\usepackage{tikz}
+\usepackage{luacode}
+
+\def\layersep{1.5cm}
+
+\tikzstyle{neuron}=[circle,fill=black!25,minimum size=17pt,inner sep=0pt]
+\tikzstyle{bneuron}=[rectangle,fill=black!25, minimum size=15pt,inner sep=0pt]
+\tikzstyle{input neuron}=[neuron, fill=green!50]
+\tikzstyle{output neuron}=[neuron, fill=red!50]
+\tikzstyle{hidden neuron}=[bneuron, fill=blue!50]
+\tikzstyle{annot} = [text width=4em, text centered]
+\tikzstyle{background}=[rectangle, fill=white!0, inner sep=.1cm, rounded corners=2mm, draw=black!50]
+
+\tikzstyle{null neuron}=[neuron, fill=black!0]
+\tikzstyle{vedge}=[-, line width=2]
+\tikzstyle{hidden vedge}=[vedge, blue!50]
+\tikzstyle{background}=[rectangle, fill=gray!10, inner sep=0.2cm, rounded corners=5mm]
+
+\begin{luacode*}
+  styles = { x="input neuron",
+    z="hidden neuron, yshift=1cm",
+    zc="hidden neuron, yshift=1cm",
+    y="output neuron",
+    y1="output neuron, yshift=-1cm" }
+  aoffset = { x=1,
+    z=0,
+    zc=0,
+    y=1,
+    y1=2
+ }
+  Layer = {
+    new = function(type, num, annot)
+      local obj = {}
+      obj.type = type
+      obj.num = num
+      obj.annot = annot
+      obj.aoffset = aoffset[type]
+      obj.style = styles[type]
+
+      if type=="zc" then 
+        obj.itrs = "{1,"..num.."}"
+      else
+        obj.itrs = "{1,...,"..num.."}"
+      end
+      return obj
+    end
+  }
+
+  function draw_layer(layer)
+    tex.print('\\foreach \\name / \\y in '..layer.itrs)
+    if layer.type=="zc" then
+      tex.print('\\node['..layer.style..'] ('..layer.name..'-1) at ('..(layer.idx-1)..'*\\layersep,-1) {};')
+      tex.print('\\node['..layer.style..'] ('..layer.name..'-'..layer.num..') at ('..(layer.idx-1)..'*\\layersep,-'..layer.num..') {};')
+      tex.print('\\draw[hidden vedge] ('..layer.name..'-1) edge ('..layer.name..'-'..layer.num..');')
+    else
+      tex.print('\\node['..layer.style..'] ('..layer.name..'-\\name) at ('..(layer.idx-1)..'*\\layersep,-\\y) {};')
+    end
+  end
+
+  function draw_link(layer1, layer2)
+    tex.print('\\foreach \\source in '..layer1.itrs)
+    tex.print('\\foreach \\dest in '..layer2.itrs)
+    tex.print('\\path ('..layer1.name..'-\\source) edge ('..layer2.name..'-\\dest);')
+  end
+
+  function draw_annot_above(layer)
+    tex.print('\\node[annot, above of='..layer.name..'-1, node distance='..(1 + layer.aoffset)..'cm] ('..layer.name..') {'..layer.annot..'};')
+  end
+  function draw_annot_left(layer1, layer2)
+    tex.print('\\node[annot, right of='..layer1.name..'] ('..layer2.name..') {'..layer2.annot..'};')
+  end
+
+  function dnet(layers)
+    for k,v in pairs(layers) do
+      layers[k].name = 'L'..tostring(k)
+      layers[k].idx = k
+    end
+--    tex.print('\\begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\\layersep]')
+    for k,v in pairs(layers) do
+      draw_layer(v)
+    end
+    for k = 1, (#layers -1) do
+      draw_link(layers[k],layers[k+1])
+    end
+
+    for k,v in pairs(layers) do
+      draw_annot_above(layers[k])
+    end
+--    draw_annot_above(layers[1])
+--    for k = 2, #layers do
+--      draw_annot_left( layers[k-1], layers[k] )
+--    end
+--    tex.print('\\end{tikzpicture}')
+  end
+
+\end{luacode*}
+
+\begin{document}
+\pagestyle{empty}
+
+%%% x zc x z x y
+\begin{center}
+  \begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
+    \luadirect{dnet( { Layer.new("x", 3, "$X$"), Layer.new("zc", 5, "$Z^1$"), Layer.new("x", 3, "$X$"), Layer.new("z", 5, "$Z^2$"), Layer.new("x", 3, "$X$"), Layer.new("y",3, "$Y$") } )}
+    \draw[->] (L1) edge [out=30, in=150] node [above] {$g^1$} (L3);
+    \draw[->] (L3) edge [out=30, in=150] node [above] {$g^2$} (L5);
+    \draw[->] (L1) edge [out=-30, in=-150] node [below] {$h^1$} (L2);
+    \draw[->] (L2) edge [out=-30, in=-150] node [below] {$h^2$} (L4);
+    \draw[->] (L4) edge [out=-30, in=-150] node [below] {$k$} (L5);
+    \draw[->] (L5) edge [out=-30, in=-150] node [below] {$f$} (L6);
+  \end{tikzpicture}
+\end{center}
+
+\end{document}
